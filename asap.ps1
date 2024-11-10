@@ -3,16 +3,18 @@ param(
     [switch]$Init,
     [string]$Key = (Get-Content ./apikey),
     [string]$KeyLabel = (Get-Date).ToString("yyyy-MM-dd_HH-mm-ss"),
-    [string]$Api = '/api/v2/measurements/my/?sort=-start_time&hidden=true'
+    [string]$Method = 'Get',
+    [string]$Api = '/api/v2/measurements/my/?sort=-start_time&hidden=true',
+    [string]$Body
 )
 
 function Get-ResponseOrStatus
 {
     param(
-        [Microsoft.PowerShell.Commands.WebRequestMethod]$Method = 'Get',
+        [string]$Method = 'Get',
         [string]$ContentType = 'application/json',
         [string]$Api,
-        [hashtable]$Body
+        $Body
     )
 
     Write-Host "$Method $Api"
@@ -21,7 +23,7 @@ function Get-ResponseOrStatus
     {
         if ($Body)
         {
-            $Response = Invoke-RestMethod -Method $Method -ContentType $ContentType -Headers @{ "Authorization" = "Key $Key" } -Body ($Body | ConvertTo-Json -Depth 100) -Uri "https://atlas.ripe.net$Api"
+            $Response = Invoke-RestMethod -Method $Method -ContentType $ContentType -Headers @{ "Authorization" = "Key $Key" } -Body ($Body.GetType().Name -eq "String" ? $Body : ($Body | ConvertTo-Json -Depth 100)) -Uri "https://atlas.ripe.net$Api"
         }
         else
         {
@@ -31,6 +33,7 @@ function Get-ResponseOrStatus
     catch
     {
         Write-Host "Status: $($_.Exception.Response.StatusCode.value__)"
+        Write-Host "$($_.Exception)"
         return $_.Exception.Response.StatusCode.value__
     }
     return $Response
@@ -100,4 +103,4 @@ if ($Init)
     }
 }
 
-return Get-ResponseOrStatus -ContentType $ContentType -Api $Api
+return Get-ResponseOrStatus -Method $Method -Api $Api -Body $Body
