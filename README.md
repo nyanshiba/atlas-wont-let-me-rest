@@ -3,7 +3,7 @@
 RIPE Atlas公式の[REST API](https://atlas.ripe.net/docs/apis/rest-api-reference/)を素早く使えるようにするヘルパースクリプト。  
 [RIPE-NCC/ripe-atlas-tools](https://github.com/RIPE-NCC/ripe-atlas-tools)では物足りないが、時間を溶かしたくない人。あるいは頻回の2FAで腱鞘炎になった人向け。
 
-## Usage
+## asap.ps1
 
 必要なpermissionが分からない場合、API Keyに全permissionを与える初期設定も行う
 ```powershell
@@ -135,4 +135,30 @@ $PartsMsm.id | ForEach-Object {
     ]
 }
 "@
+```
+
+## atlas-exporter.ps1
+
+[Loki HTTP API](https://grafana.com/docs/loki/latest/reference/loki-http-api/)に対応したExporter。  
+[可視化はGrafanaでって言ったよね - 俺の外付けHDD](http://localhost:3000/blog/grafana#ripe-atlas)
+
+初期値を設定すると、引数から省略できる。  
+GrafanaのLine limitを考慮して、デフォルトでは86400秒間隔にログを選んで送信するよう設定されている。
+```ps1
+param(
+    [string]$Measurement = 2006, 
+    [string]$Probe = 51221,
+    [switch]$Latest,
+    [string]$Key = "974baae9-750a-427a-be78-e20797d6bbc4",
+    [Int]$RateLimitSeconds = 86400,
+    [string]$LokiUrl = "http://loki.nuc.home.arpa:3100/loki/api/v1/push"
+)
+```
+これまでのログをすべてLokiに送信
+```powershell
+./ntpm.ps1 -Measurement 2006
+```
+毎日、最新の計測を送信
+```sh:crontab
+5 5 * * * /usr/bin/pwsh /home/user/atlas/ntpm.ps1 -Measurement <msm_id> -Latest
 ```
