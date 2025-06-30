@@ -2,11 +2,14 @@
 param(
     [string]$Measurement = 2006, 
     [string]$Probe = 51221,
+    [string[]]$HopLimits = (2, 5, 10),
     [switch]$Latest,
+    [string]$Start = (Get-Date -Date "2022-11-19 00:00:00" -UFormat "%s"),
+    [string]$Stop = (Get-Date -UFormat "%s"),
     [string]$Key = "974baae9-750a-427a-be78-e20797d6bbc4",
     [Int]$RateLimitSeconds = 86400,
     [string]$LokiUrl = "http://loki.home.arpa:3100/loki/api/v1/push",
-    [string[]]$HopLimits = (2, 5, 10)
+    [switch]$WhatIf
 )
 
 Set-Location $PSScriptRoot
@@ -19,7 +22,7 @@ if ($Latest)
 # 全ての計測
 else
 {
-    $Response = ./asap.ps1 -Api /api/v2/measurements/$Measurement/results/?probe_ids=$Probe -Key $Key
+    $Response = ./asap.ps1 -Api "/api/v2/measurements/$Measurement/results/?probe_ids=$Probe&start=$Start&stop=$Stop" -Key $Key
 }
 
 # Lokiに送るラベルを定義
@@ -97,4 +100,7 @@ else
     Write-Host "There are $($values.Count) values"
 }
 
-Invoke-RestMethod -Method Post -Uri $LokiUrl -ContentType "application/json" -Body $bodyJson
+if (!$WhatIf)
+{
+    Invoke-RestMethod -Method Post -Uri $LokiUrl -ContentType "application/json" -Body $bodyJson
+}
