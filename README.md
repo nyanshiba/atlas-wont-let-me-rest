@@ -162,3 +162,28 @@ param(
 ```sh:crontab
 5 5 * * * /usr/bin/pwsh /home/user/atlas/ntpm.ps1 -Measurement <msm_id> -Latest
 ```
+
+## nte-rank.ps1
+
+NTEガチャの指標に。管理下のProbeや、フレッツ系の単県ISPなどProbeのゲートウェイがPPPoEに向いている前提。
+- 当たりNTEの例
+```
+198.51.100.249 latency min: 5.375, 50%ile: 6.006, 90%ile: 7.051, 95%ile: 11.608
+198.51.100.251 latency min: 5.389, 50%ile: 6.012, 90%ile: 6.825, 95%ile: 11.816
+203.0.113.251 latency min: 5.466, 50%ile: 6.09, 90%ile: 8.958, 95%ile: 13.762
+```
+- 外れNTEの例
+```
+203.0.113.168 latency min: 6.25, 50%ile: 6.688, 90%ile: 12.095, 95%ile: 14.188
+198.51.100.248 latency min: 5.486, 50%ile: 6.061, 90%ile: 8.564, 95%ile: 15.166
+203.0.113.103 latency min: 5.606, 50%ile: 6.675, 90%ile: 10.117, 95%ile: 15.882
+203.0.113.137 latency min: 6.073, 50%ile: 6.597, 90%ile: 14.505, 95%ile: 16.768
+198.51.100.250 latency min: 5.387, 50%ile: 6.032, 90%ile: 9.44, 95%ile: 19.105
+198.51.100.252 latency min: 5.438, 50%ile: 6.16, 90%ile: 19.636, 95%ile: 48.676
+```
+[Yamaha RTXのLuaスクリプト](https://nyanshiba.com/blog/yamahartx-settings#luaで自動nninteガチャ)や[NEC IXのネットワークモニタ機能](https://nyanshiba.com/blog/nec-ix#nteガチャ)に投入して使える。
+
+```powershell
+# Probe 51221の、過去1年間(既定6ヵ月)のm.root-servers.net組み込みTraceroute計測を取得し、2ホップ目を集計する例
+.\nte-rank.ps1 -Probe 51221 -Measurement 5006 -Start (Get-Date -Date ((Get-Date).AddYears(-1)) -UFormat "%s") -Key "974baae9-750a-427a-be78-e20797d6bbc4" -IPTTL 2
+```
